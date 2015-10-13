@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -17,22 +19,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.vincent.realtransit.DataHolder;
 import com.vincent.realtransit.R;
 import com.vincent.realtransit.database.DbContract;
 import com.vincent.realtransit.helper.Constants;
 import com.vincent.realtransit.helper.Manager;
-import com.vincent.realtransit.service.ServiceUpdateStopInfo;
+import com.vincent.realtransit.service.ServiceStopInfo;
 
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private final MainActivity context = this;
-    private AlertDialog dialog;
+    private AlertDialog newStopdialog;
+    private AlertDialog delStopDialog;
     private EditText userInput;
     private BroadcastReceiver receiver;
     private SimpleAdapter adapter;
@@ -54,24 +60,19 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                if (dialog == null) {
+                if (newStopdialog == null) {
                     userInput = new EditText(context);
-                    dialog = new AlertDialog.Builder(context)
-                        .setTitle("Add New Stop")
-                        .setMessage("Please input a new stop number")
-                        .setView(userInput)
+                    newStopdialog = new AlertDialog.Builder(context)
                         .setPositiveButton("Save", null)
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
+                        .setNegativeButton("Cancel", null)
                         .create();
-                    dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    newStopdialog.setTitle("Add New Stop");
+                    newStopdialog.setMessage("Please input a new stop number");
+                    newStopdialog.setView(userInput, 60, 0, 60, 0);
+                    newStopdialog.setOnShowListener(new DialogInterface.OnShowListener() {
                         @Override
                         public void onShow(final DialogInterface di) {
-                            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                            newStopdialog.getButton(AlertDialog.BUTTON_POSITIVE)
                                     .setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -81,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
                                                 Integer.valueOf(stopNo);
                                                 if (isExist(stopNo)) {
                                                     Snackbar.make(v, "The bus stop already exists.", Snackbar.LENGTH_SHORT).show();
-                                                }
-                                                else {
+                                                } else {
                                                     di.dismiss();
                                                     intentSaveNewStop(stopNo);
                                                 }
@@ -96,13 +96,13 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
                 userInput.setText("");
-                dialog.show();
+                newStopdialog.show();
             }
         });
 
         // create adapter
         adapter = createAdapter(this, DataHolder.stops);
-        ListView listView = (ListView) findViewById(R.id.listView);
+        SwipeMenuListView listView = (SwipeMenuListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
 
         // item click
@@ -116,6 +116,33 @@ public class MainActivity extends AppCompatActivity {
                 context.startActivity(intent);
             }
         });
+
+        // swap item to delete
+        listView.setMenuCreator(new ItemSwipeMenuCreator());
+        listView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
+                if (index == 0) {
+                    if (delStopDialog == null) {
+                        delStopDialog = new AlertDialog.Builder(context)
+                                .setTitle("Confirm")
+                                .setMessage("Are you sure to remove the bus stop?")
+                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    private int pos = position;
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        intentDeleteStop(pos);
+                                    }
+                                })
+                                .setNegativeButton("No", null)
+                                .create();
+                    }
+                    delStopDialog.show();
+                }
+                return false;
+            }
+        });
+        listView.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
     }
 
     @Override
@@ -171,15 +198,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void intentUpdateStopInfo (Context context) {
-        Log.v("MainActivity", "intentUpdateStopInfo");
-        Intent intent = new Intent(context, ServiceUpdateStopInfo.class);
+        Log.v("MainActivity", "intent to updat stop info");
+        Intent intent = new Intent(context, ServiceStopInfo.class);
         context.startService(intent);
     }
 
     private void intentSaveNewStop(String stopNo) {
-        Log.v("MainActivity", "intentSaveNewStop");
-        Intent intent = new Intent(context, ServiceUpdateStopInfo.class);
+        Log.v("MainActivity", "intent to creat stop");
+        Intent intent = new Intent(context, ServiceStopInfo.class);
         intent.putExtra(Constants.CREATE_STOP, stopNo);
+        context.startService(intent);
+    }
+
+    private void intentDeleteStop(int position) {
+        Log.v("MainActivity", "intent to delete stop " + position);
+        String stopNo = DataHolder.stops.get(position).get(DbContract.Stop.COLUMN_NAME_NO);
+        Intent intent = new Intent(context, ServiceStopInfo.class);
+        intent.putExtra(Constants.DELETE_STOP, stopNo);
         context.startService(intent);
     }
 
@@ -187,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
         receiver = new UpdateStopInfoReceiver();
         LocalBroadcastManager.getInstance(context).registerReceiver(
                 receiver,
-                new IntentFilter(ServiceUpdateStopInfo.ACTION)
+                new IntentFilter(ServiceStopInfo.ACTION)
         );
         Log.v("MainActivity", "Receiver initied");
     }
@@ -204,6 +239,22 @@ public class MainActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
             }
             Manager.releaseResources();
+        }
+    }
+
+    private class ItemSwipeMenuCreator implements SwipeMenuCreator {
+        @Override
+        public void create(SwipeMenu menu) {
+            // create "delete" item
+            SwipeMenuItem deleteItem = new SwipeMenuItem(getApplicationContext());
+            // set item background
+            deleteItem.setBackground(new ColorDrawable(Color.parseColor("#EF5350")));
+            // set item width
+            deleteItem.setWidth(250);
+            // set a icon
+            deleteItem.setIcon(android.R.drawable.ic_menu_delete);
+            // add to menu
+            menu.addMenuItem(deleteItem);
         }
     }
 }

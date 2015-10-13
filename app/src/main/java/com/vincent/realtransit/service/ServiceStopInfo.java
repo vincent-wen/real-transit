@@ -24,35 +24,43 @@ import java.util.Map;
 /**
  * Created by vincent on 2015-10-12.
  */
-public class ServiceUpdateStopInfo extends IntentService {
-    public static final String ACTION = ServiceUpdateStopInfo.class.getName();
+public class ServiceStopInfo extends IntentService {
+    public static final String ACTION = ServiceStopInfo.class.getName();
     private String error;
 
-    public ServiceUpdateStopInfo() {
-        super("ServiceUpdateStopInfo");
+    public ServiceStopInfo() {
+        super("ServiceStopInfo");
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         try {
-            Log.v("ServiceUpdateStopInfo", "Service new intent");
+            Log.v("ServiceStopInfo", "Service new intent");
             String stopNo = intent.getStringExtra(Constants.CREATE_STOP);
-            intent = new Intent(ACTION);
-            if (stopNo != null && stopNo.length() > 0) {
-                Log.v("StopNo intent", stopNo);
+            if (stopNo != null) {
+                Log.v("Create StopNo", stopNo);
                 String response = HttpHelper.getInstance().stopInfo(stopNo, getString(R.string.api_key));
                 Map<String, String> stop = grabStopInfo(response);
                 if (stop != null) {
                     dbUpdateStop(stop);
-                } else {
-                    intent.putExtra("error", error);
                 }
-            } else {
+            }
+            else if ((stopNo = intent.getStringExtra(Constants.DELETE_STOP)) != null){
+                Log.v("Delete StopNo", stopNo);
+                deleteStop(stopNo);
+                dbDeleteStop(stopNo);
+            }
+            else {
                 dbGetStops();
+            }
+
+            intent = new Intent(ACTION);
+            if (error != null) {
+                intent.putExtra("error", error);
             }
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         } catch (Exception e) {
-            Log.v("ServiceUpdateStopInfo", "onHandleIntent", e);
+            Log.v("ServiceStopInfo", "onHandleIntent", e);
         }
     }
 
@@ -111,5 +119,23 @@ public class ServiceUpdateStopInfo extends IntentService {
             );
             DataHolder.stops.add(stop);
         }
+    }
+
+    private void deleteStop (String stopNo) {
+        for (Map<String, String> stop : DataHolder.stops) {
+            if (stop.get(DbContract.Stop.COLUMN_NAME_NO).equals(stopNo)) {
+                DataHolder.stops.remove(stop);
+                return;
+            }
+        }
+    }
+
+    private void dbDeleteStop (String stopNo) {
+        SQLiteDatabase stopDb = new StopDbHelper(getBaseContext()).getReadableDatabase();
+        stopDb.delete(
+                DbContract.Stop.TABLE_NAME,
+                DbContract.Stop.COLUMN_NAME_NO + " = ?",
+                new String[] {stopNo}
+        );
     }
 }

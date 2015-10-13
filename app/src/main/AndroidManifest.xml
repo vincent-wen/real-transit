@@ -28,11 +28,11 @@
         </activity>
 
         <service
-            android:name=".service.ServiceUpdateStopSchedule"
+            android:name=".service.ServiceStopSchedule"
             android:exported="false" >
         </service>
         <service
-            android:name=".service.ServiceUpdateStopInfo"
+            android:name=".service.ServiceStopInfo"
             android:exported="false" >
         </service>
     </application>

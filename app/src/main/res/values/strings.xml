@@ -2,6 +2,6 @@
     <string name="app_name">Real Transit</string>
     <string name="action_settings">Settings</string>
     <string name="api_key">cVqhyfyqaIpmUksUaALX</string>
-    <string name="title_activity_stop_detail">Stop Details</string>
+    <string name="title_activity_stop_detail">Next Bus</string>
     <string name="loading">Loading...</string>
 </resources>

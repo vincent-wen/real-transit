@@ -18,7 +18,7 @@ import com.vincent.realtransit.DataHolder;
 import com.vincent.realtransit.R;
 import com.vincent.realtransit.helper.Constants;
 import com.vincent.realtransit.helper.Manager;
-import com.vincent.realtransit.service.ServiceUpdateStopSchedule;
+import com.vincent.realtransit.service.ServiceStopSchedule;
 
 public class StopDetailActivity extends AppCompatActivity {
     private final StopDetailActivity activity = this;
@@ -40,10 +40,10 @@ public class StopDetailActivity extends AppCompatActivity {
         receiver = new UpdateStopScheduleReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 receiver,
-                new IntentFilter(ServiceUpdateStopSchedule.ACTION));
+                new IntentFilter(ServiceStopSchedule.ACTION));
 
         Log.v("StopDetailActivity", "Create intent");
-        Intent intent = new Intent(this, ServiceUpdateStopSchedule.class);
+        Intent intent = new Intent(this, ServiceStopSchedule.class);
         intent.putExtra(Constants.STOP_NUM, getIntent().getIntExtra(Constants.STOP_NUM, -1));
         startService(intent);
     }

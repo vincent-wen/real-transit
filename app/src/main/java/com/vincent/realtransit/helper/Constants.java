@@ -10,6 +10,7 @@ public class Constants {
     public static final String STOP_NUM = PACKAGE_NAME + ".STOP_NUM";
     public static final String UPDATE_RESULT = PACKAGE_NAME + ".UPDATE_RESULT";
     public static final String CREATE_STOP = PACKAGE_NAME + ".CREATE_STOP";
+    public static final String DELETE_STOP = PACKAGE_NAME + ".DELETE_STOP";
 
     public enum STATUS {
         OK, NOK

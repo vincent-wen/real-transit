@@ -19,12 +19,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ServiceUpdateStopSchedule extends IntentService {
-    public static final String ACTION = ServiceUpdateStopSchedule.class.getName();
+public class ServiceStopSchedule extends IntentService {
+    public static final String ACTION = ServiceStopSchedule.class.getName();
     private String error;
 
-    public ServiceUpdateStopSchedule() {
-        super("ServiceUpdateStopSchedule");
+    public ServiceStopSchedule() {
+        super("ServiceStopSchedule");
     }
 
     @Override
