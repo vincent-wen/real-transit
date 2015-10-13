@@ -1,5 +1,7 @@
 package com.vincent.realtransit.helper;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,14 +29,24 @@ public class HttpHelper {
         instance = null;
     }
 
-    public String stopSchedule(int stopNum, String apiKey) throws Exception {
-        URL url = new URL("http://api.translink.ca/RTTIAPI/V1/stops/" + stopNum + "/estimates?apikey=" + apiKey);
+    public String stopSchedule(int stopNo, String apiKey) throws Exception {
+        return get("http://api.translink.ca/RTTIAPI/V1/stops/" + stopNo + "/estimates?apikey=" + apiKey);
+    }
+
+    public String stopInfo(String stopNo, String apiKey) throws Exception {
+        return get("http://api.translink.ca/RTTIAPI/V1/stops/" + stopNo + "?apikey=" + apiKey);
+    }
+
+    private String get (String rawUrl) throws Exception{
+        URL url = new URL(rawUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("accept", "application/JSON");
 
-        String result = readResponse(connection.getInputStream());
-        connection.disconnect();
+        int status = connection.getResponseCode();
+        InputStream in = status <= 300 ? connection.getInputStream() : connection.getErrorStream();
 
+        String result = readResponse(in);
+        connection.disconnect();
         return result;
     }
 
@@ -47,6 +59,7 @@ public class HttpHelper {
         }
         reader.close();
         String result = sb.toString();
+        Log.v("HttpResponse", result);
         return result;
     }
 }

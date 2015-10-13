@@ -13,10 +13,17 @@
     tools:showIn="@layout/activity_stop_detail"
     tools:context="com.vincent.realtransit.activity.StopDetailActivity">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/loading"
+        android:id="@+id/textView" />
+
     <ExpandableListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/expandableListView"
-        android:choiceMode="singleChoice" />
+        android:choiceMode="singleChoice"
+        android:visibility="invisible" />
 
 </LinearLayout>

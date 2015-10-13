@@ -13,7 +13,7 @@
         <activity
             android:name="com.vincent.realtransit.activity.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,11 +23,16 @@
         <activity
             android:name="com.vincent.realtransit.activity.StopDetailActivity"
             android:label="@string/title_activity_stop_detail"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme"
+            android:parentActivityName=".activity.MainActivity" >
         </activity>
 
         <service
-            android:name=".service.UpdateStopScheduleService"
+            android:name=".service.ServiceUpdateStopSchedule"
+            android:exported="false" >
+        </service>
+        <service
+            android:name=".service.ServiceUpdateStopInfo"
             android:exported="false" >
         </service>
     </application>
